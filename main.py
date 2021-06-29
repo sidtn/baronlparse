@@ -1,17 +1,21 @@
 import requests
 from bs4 import BeautifulSoup
-import time
+from datetime import datetime
 import os
 import pandas as pd
 import openpyxl
+from multiprocessing import Pool, cpu_count
+import tqdm
 
 
+url = 'https://baraholka.onliner.by/viewforum.php?f=286&cat=1&sk=up&start='
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
 }
 
-def get_data():
+# в этой функции парсим все строчные данные, добавляем в словарь и импортируем в exel
+def get_data(url):
 
     list_names = []
     list_links = []
@@ -22,7 +26,7 @@ def get_data():
 
     page_count = 0
     while page_count <= 700:
-        r = requests.get(url=f'https://baraholka.onliner.by/viewforum.php?f=286&cat=1&sk=up&start={page_count}', headers=headers)
+        r = requests.get(url=f'{url}{page_count}', headers=headers)
         soup = BeautifulSoup(r.text, features="html.parser")
 
         # пасрсинг названия и ссылки объявления
@@ -31,7 +35,9 @@ def get_data():
             link_adv = link.find('a').get('href').strip('.')
             name_adv = link.find('h2', class_='wraptxt').text
             list_names.append(name_adv)
+            path_to_folser = f'https://baraholka.onliner.by{link_adv}'
             list_links.append(f'https://baraholka.onliner.by{link_adv}')
+            list_path.append(f'{os.path.abspath(os.curdir)}\save_image\{path_to_folser[45:]}')
 
         # парсинг цены
         adv_price = soup.find_all('td', class_='cost')
@@ -50,34 +56,8 @@ def get_data():
             list_seller.append(seller)
             list_place.append(place)
 
-        print(f'Объявлений обработано: {50 + page_count}')
+        print(f'Объявлений обработано: {len(list_links)}')
         page_count += 50
-
-
-    #парсим изображений
-    print("Парсим изображения...")
-
-    for link in list_links:
-        try:
-            os.mkdir(f'save_image//{link[45:]}')
-            print(f'{list_links.index(link) + 1} объявлений из {len(list_links)} обработано')
-        except:
-            print('Папка уже существует')
-        list_path.append(f'{os.path.abspath(os.curdir)}\save_image\{link[45:]}')
-        req = requests.get(url=link, headers=headers)
-        soup_i = BeautifulSoup(req.text, "html5lib")
-        image_adv = soup_i.find_all(attrs={'class': 'msgpost-img'})
-
-        count_page = 0
-        for image_link in image_adv:
-            img = image_link.get('src')
-            try:
-                req = requests.get(img)
-                with open(f'save_image//{link[45:]}//{img[60:]}', 'wb') as fd:
-                    for chunk in req.iter_content():
-                        fd.write(chunk)
-            except:
-                print('Не удалось спарсить.')
 
     # создание словаря с данными
     dict_adv = {
@@ -95,8 +75,52 @@ def get_data():
 
 
 
+
+def creat_list_links(url):
+    list_links = []
+    page_count = 0
+    while page_count <= 700:
+        r = requests.get(url=f'{url}{page_count}', headers=headers)
+        soup = BeautifulSoup(r.text, features="html.parser")
+        adv = soup.find_all('div', class_="txt-i")
+        for link in adv:
+            link_adv = link.find('a').get('href').strip('.')
+            list_links.append(f'https://baraholka.onliner.by{link_adv}')
+        page_count += 50
+    return list_links
+
+def get_image(url):
+    try:
+        os.mkdir(f'save_image//{url[45:]}')
+    except:
+        pass
+    r = requests.get(url=url, headers=headers)
+    soup = BeautifulSoup(r.text, "html5lib")
+    image_adv = soup.find_all(attrs={'class': 'msgpost-img'})
+
+    for image_link in image_adv:
+        img = image_link.get('src')
+        try:
+            req = requests.get(img)
+            with open(f'save_image//{url[45:]}//{img[60:]}', 'wb') as fd:
+                for chunk in req.iter_content():
+                    fd.write(chunk)
+        except:
+            pass
+
+
 def main():
-    get_data()
+    start = datetime.now()
+    get_data(url)
+    os.mkdir('save_image')
+    print("Парсим изображения...")
+    p = Pool(processes=(cpu_count()))
+    for i in tqdm.tqdm(p.imap_unordered(get_image, creat_list_links(url)), total=len(creat_list_links(url))):
+        pass
+
+    print(f'Раздел обработан за {datetime.now()-start}')
+
+
 
 if __name__ == '__main__':
     main()
