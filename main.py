@@ -6,9 +6,9 @@ import pandas as pd
 import openpyxl
 from multiprocessing import Pool, cpu_count
 import tqdm
-from get_lists import list_subselection_names, list_subselection_links, list_subselection_adv_count
+from get_lists import get_lists
 
-inp = 'Ноутбуки'
+inp = 'Видеокарты'
 
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
@@ -114,9 +114,9 @@ def get_image(url):
 def main():
     global inp
     start = datetime.now()
-    if inp in list_subselection_names:
-        url = list_subselection_links[list_subselection_names.index(inp)]
-        count = list_subselection_adv_count[list_subselection_names.index(inp)]
+    if inp in get_lists()[0]:
+        url = get_lists()[1][get_lists()[0].index(inp)]
+        count = get_lists()[2][get_lists()[0].index(inp)]
         get_data(url, inp, count)
         os.mkdir(f'{inp}')
         print("Парсим изображения...")
@@ -125,7 +125,7 @@ def main():
             pass
     else:
         print('Раздел не существует')
-        print(f'Раздел обработан за {datetime.now()-start}')
+    print(f'Раздел обработан за {datetime.now()-start}')
 
 
 
