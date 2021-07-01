@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import os
 import pandas as pd
-import openpyxl
 from multiprocessing import Pool, cpu_count
 import tqdm
 from get_lists import get_lists
@@ -73,7 +72,7 @@ def get_data(url, selection_name, pages_count):
 
     # экспорт данных в exel
     df = pd.DataFrame(dict_adv)
-    df.to_excel('file.xlsx')
+    df.to_excel(f'{selection_name}.xlsx')
 
 
 
