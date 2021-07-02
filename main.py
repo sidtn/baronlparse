@@ -91,7 +91,6 @@ def creat_list_links(url, pages_count):
     return list_links
 
 def get_image(url):
-    global inp
     try:
         os.mkdir(f'{inp}//{url[45:]}')
     except:
@@ -111,7 +110,6 @@ def get_image(url):
 
 
 def main():
-    global inp
     start = datetime.now()
     if inp in get_lists()[0]:
         url = get_lists()[1][get_lists()[0].index(inp)]
@@ -125,6 +123,8 @@ def main():
     else:
         print('Раздел не существует')
     print(f'Раздел обработан за {datetime.now()-start}')
+
+
 
 
 
