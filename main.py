@@ -115,7 +115,8 @@ def main():
     url = get_lists()[1][get_lists()[0].index(inp)]
     count = get_lists()[2][get_lists()[0].index(inp)]
     get_data(url, inp, count)
-    os.mkdir(f'save_images')
+    os.mkdir('save_images')
+    print('Парсим изображения, ожидайте...')
     p = Pool(processes=(cpu_count()*2))
     for i in tqdm.tqdm(p.imap_unordered(get_image, creat_list_links(url, count)), total=len(creat_list_links(url, count))):
         pass
