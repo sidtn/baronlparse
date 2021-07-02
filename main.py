@@ -6,8 +6,9 @@ import pandas as pd
 from multiprocessing import Pool, cpu_count
 import tqdm
 from get_lists import get_lists
+import tkinter
+from tkinter import ttk
 
-inp = 'Видеокарты'
 
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
@@ -92,7 +93,7 @@ def creat_list_links(url, pages_count):
 
 def get_image(url):
     try:
-        os.mkdir(f'{inp}//{url[45:]}')
+        os.mkdir(f'save_images//{url[45:]}')
     except:
         pass
     r = requests.get(url=url, headers=headers)
@@ -102,7 +103,7 @@ def get_image(url):
         img = image_link.get('src')
         try:
             req = requests.get(img)
-            with open(f'{inp}//{url[45:]}//{img[60:]}', 'wb') as fd:
+            with open(f'save_images//{url[45:]}//{img[60:]}', 'wb') as fd:
                 for chunk in req.iter_content():
                     fd.write(chunk)
         except:
@@ -111,22 +112,54 @@ def get_image(url):
 
 def main():
     start = datetime.now()
-    if inp in get_lists()[0]:
-        url = get_lists()[1][get_lists()[0].index(inp)]
-        count = get_lists()[2][get_lists()[0].index(inp)]
-        get_data(url, inp, count)
-        os.mkdir(f'{inp}')
-        print("Парсим изображения...")
-        p = Pool(processes=(cpu_count()*2))
-        for i in tqdm.tqdm(p.imap_unordered(get_image, creat_list_links(url, count)), total=len(creat_list_links(url, count))):
-            pass
-    else:
-        print('Раздел не существует')
+    url = get_lists()[1][get_lists()[0].index(inp)]
+    count = get_lists()[2][get_lists()[0].index(inp)]
+    get_data(url, inp, count)
+    os.mkdir(f'save_images')
+    p = Pool(processes=(cpu_count()*2))
+    for i in tqdm.tqdm(p.imap_unordered(get_image, creat_list_links(url, count)), total=len(creat_list_links(url, count))):
+        pass
+    os.rename('save_images', f'{inp}')
+
     print(f'Раздел обработан за {datetime.now()-start}')
 
 
-
-
-
 if __name__ == '__main__':
-    main()
+    root = tkinter.Tk()
+    root.geometry('260x300')
+
+    selections = [key for key in get_lists()[3]]
+
+    root.title("Парсер барахолки онлайнера")
+    root.iconbitmap('logo.ico')
+
+    ttk.Label(text='Выберите раздел').grid(row=1, column=1, columnspan=2, padx=80, pady=5, sticky='w')
+    ttk.Label(text='Выберите подраздел').grid(row=3, column=1, columnspan=2, padx=80, pady=5, sticky='w')
+
+    menu_selections = ttk.Combobox(root, width=37, value=(selections))
+    menu_selections.grid(row=2, column=1, columnspan=2, padx=10, pady=5, sticky='w')
+
+
+    def callback(event):
+        abc = event.widget.get()
+        selection = menu_selections.get()
+        menu_subselections.config(values=get_lists()[3][selection])
+
+
+    menu_subselections = ttk.Combobox(root, width=37)
+    menu_subselections.grid(row=4, column=1, columnspan=2, padx=10, pady=5, sticky='w')
+    menu_subselections.bind('<Button-1>', callback)
+
+
+    def press(event):
+        global inp
+        inp = menu_subselections.get()
+        main()
+
+
+
+    button = ttk.Button(root, text='Парсить')
+    button.grid(row=5, column=1, columnspan=2, padx=90, pady=20, sticky='w')
+    button.bind('<Button-1>', press)
+
+    root.mainloop()
