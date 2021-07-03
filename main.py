@@ -117,9 +117,9 @@ def main():
     get_data(url, inp, count)
     os.mkdir('save_images')
     print('Парсим изображения, ожидайте...')
-    p = Pool(processes=(cpu_count()*2))
-    for i in tqdm.tqdm(p.imap_unordered(get_image, creat_list_links(url, count)), total=len(creat_list_links(url, count))):
-        pass
+    with Pool(processes=(cpu_count()*2)) as p:
+        for i in tqdm.tqdm(p.imap_unordered(get_image, creat_list_links(url, count)), total=len(creat_list_links(url, count))):
+            pass
     os.rename('save_images', f'{inp}')
 
     print(f'Раздел обработан за {datetime.now()-start}')
@@ -127,7 +127,7 @@ def main():
 
 if __name__ == '__main__':
     root = tkinter.Tk()
-    root.geometry('260x300')
+    root.geometry('260x300+700+300')
 
     selections = [key for key in get_lists()[3]]
 
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     ttk.Label(text='Выберите раздел').grid(row=1, column=1, columnspan=2, padx=80, pady=5, sticky='w')
     ttk.Label(text='Выберите подраздел').grid(row=3, column=1, columnspan=2, padx=80, pady=5, sticky='w')
 
-    menu_selections = ttk.Combobox(root, width=37, value=(selections))
+    menu_selections = ttk.Combobox(root, width=37, value=selections)
     menu_selections.grid(row=2, column=1, columnspan=2, padx=10, pady=5, sticky='w')
 
 
