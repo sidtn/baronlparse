@@ -9,16 +9,18 @@ from get_lists import get_lists
 import tkinter
 from tkinter import ttk
 
+inp = None
 
 headers = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\
+     (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
+    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,\
+    image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
 }
 
 
 # в этой функции парсим все строчные данные, добавляем в словарь и импортируем в exel
 def get_data(url, selection_name, pages_count):
-
     list_names = []
     list_links = []
     list_price = []
@@ -76,8 +78,6 @@ def get_data(url, selection_name, pages_count):
     df.to_excel(f'{selection_name}.xlsx')
 
 
-
-
 def creat_list_links(url, pages_count):
     list_links = []
     page_count = 0
@@ -91,10 +91,11 @@ def creat_list_links(url, pages_count):
         page_count += 50
     return list_links
 
+
 def get_image(url):
     try:
-        os.mkdir(f'save_images//{url[45:]}')
-    except:
+        os.mkdir(f'save_image//{url[45:]}')
+    except OSError:
         pass
     r = requests.get(url=url, headers=headers)
     soup = BeautifulSoup(r.text, "html5lib")
@@ -103,10 +104,10 @@ def get_image(url):
         img = image_link.get('src')
         try:
             req = requests.get(img)
-            with open(f'save_images//{url[45:]}//{img[60:]}', 'wb') as fd:
+            with open(f'save_image//{url[45:]}//{img[60:]}', 'wb') as fd:
                 for chunk in req.iter_content():
                     fd.write(chunk)
-        except:
+        except Exception:
             pass
 
 
@@ -115,14 +116,14 @@ def main():
     url = get_lists()[1][get_lists()[0].index(inp)]
     count = get_lists()[2][get_lists()[0].index(inp)]
     get_data(url, inp, count)
-    os.mkdir('save_images')
+    os.mkdir('save_image')
     print('Парсим изображения, ожидайте...')
-    with Pool(processes=(cpu_count()*2)) as p:
-        for i in tqdm.tqdm(p.imap_unordered(get_image, creat_list_links(url, count)), total=len(creat_list_links(url, count))):
+    with Pool(processes=(cpu_count() * 2)) as p:
+        for progress in tqdm.tqdm(p.imap_unordered(get_image, creat_list_links(url, count)),
+                        total=len(creat_list_links(url, count))):
             pass
-    os.rename('save_images', f'{inp}')
-
-    print(f'Раздел обработан за {datetime.now()-start}')
+    os.rename('save_image', f'{inp}')
+    print(f'Раздел обработан за {datetime.now() - start}')
 
 
 if __name__ == '__main__':
@@ -156,7 +157,6 @@ if __name__ == '__main__':
         global inp
         inp = menu_subselections.get()
         main()
-
 
 
     button = ttk.Button(root, text='Парсить')

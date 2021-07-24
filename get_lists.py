@@ -44,7 +44,7 @@ def get_lists():
             lan = li.find_all('a')
             list_1 = []
             for i in lan:
-                if i.text.strip() == 'Легковые автомобили':
+                if i.text.strip() == 'Легковые автомобили' or i.text.strip() == 'Мотоциклы':
                     continue
                 else:
                     list_1.append(i.text.strip())
