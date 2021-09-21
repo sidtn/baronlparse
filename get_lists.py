@@ -51,28 +51,3 @@ def get_lists():
             dict_selection[selection] = list_1
 
     return list_subselection_names, list_subselection_links, list_subselection_adv_count, dict_selection
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
